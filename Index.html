@@ -30,22 +30,32 @@
         </div>
 
         <div class="header-right">
-          <!-- User Info -->
-          <div class="user-info">
-            <div class="user-avatar">
-              <?= session.fullName ? session.fullName.charAt(0).toUpperCase() : 'U' ?>
-            </div>
-            <div class="user-details">
-              <div class="user-name"><?= session.fullName || 'User' ?></div>
-              <div class="user-role"><?= session.role || 'User' ?></div>
+          <!-- User Dropdown -->
+          <div class="user-dropdown" id="userDropdown">
+            <button class="user-dropdown-toggle" onclick="toggleUserDropdown()">
+              <div class="user-avatar">
+                <?= session.fullName ? session.fullName.charAt(0).toUpperCase() : 'U' ?>
+              </div>
+              <div class="user-details">
+                <div class="user-name"><?= session.fullName || 'User' ?></div>
+                <div class="user-role"><?= session.role || 'User' ?></div>
+              </div>
+              <i class="fas fa-chevron-down" style="font-size: 12px; color: var(--gray-color);"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="user-dropdown-menu">
+              <button onclick="showChangePasswordModal()">
+                <i class="fas fa-key"></i>
+                <span>Đổi mật khẩu</span>
+              </button>
+              <div class="user-dropdown-divider"></div>
+              <button onclick="handleLogout()" style="color: var(--danger-color);">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+              </button>
             </div>
           </div>
-
-          <!-- Logout Button -->
-          <button class="btn btn-danger btn-sm" onclick="handleLogout()">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Đăng xuất</span>
-          </button>
         </div>
       </header>
 
@@ -177,20 +187,211 @@
     // Config data from server
     const CONFIG = <?= JSON.stringify(config) ?>;
 
+    // Toggle User Dropdown
+    function toggleUserDropdown() {
+      const dropdown = document.getElementById('userDropdown');
+      dropdown.classList.toggle('active');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('userDropdown');
+      if (dropdown && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('active');
+      }
+    });
+
+    // Show Change Password Modal
+    function showChangePasswordModal() {
+      // Close user dropdown
+      document.getElementById('userDropdown').classList.remove('active');
+
+      const modalContainer = document.getElementById('modalContainer');
+      modalContainer.innerHTML = `
+        <div class="modal-overlay show" id="changePasswordModal">
+          <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+              <h3 class="modal-title">
+                <i class="fas fa-key text-primary"></i>
+                Đổi mật khẩu
+              </h3>
+              <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+              <div class="modal-body">
+                <!-- Old Password -->
+                <div class="form-group">
+                  <label class="form-label required">Mật khẩu hiện tại</label>
+                  <div class="input-group" style="position: relative;">
+                    <i class="fas fa-lock input-group-icon"></i>
+                    <input
+                      type="password"
+                      id="oldPassword"
+                      class="form-control"
+                      placeholder="Nhập mật khẩu hiện tại"
+                      required
+                      style="padding-left: 45px;"
+                    >
+                  </div>
+                </div>
+
+                <!-- New Password -->
+                <div class="form-group">
+                  <label class="form-label required">Mật khẩu mới</label>
+                  <div class="input-group" style="position: relative;">
+                    <i class="fas fa-key input-group-icon"></i>
+                    <input
+                      type="password"
+                      id="newPassword"
+                      class="form-control"
+                      placeholder="Nhập mật khẩu mới"
+                      required
+                      minlength="6"
+                      style="padding-left: 45px;"
+                    >
+                  </div>
+                  <small style="color: var(--gray-color); font-size: 12px;">Tối thiểu 6 ký tự</small>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+                  <label class="form-label required">Xác nhận mật khẩu mới</label>
+                  <div class="input-group" style="position: relative;">
+                    <i class="fas fa-check-circle input-group-icon"></i>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      class="form-control"
+                      placeholder="Nhập lại mật khẩu mới"
+                      required
+                      minlength="6"
+                      style="padding-left: 45px;"
+                    >
+                  </div>
+                </div>
+
+                <div id="passwordError" class="hidden" style="padding: 10px; background: #f8d7da; color: #721c24; border-radius: 4px; margin-top: 10px; font-size: 13px;">
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                  <i class="fas fa-times"></i> Hủy
+                </button>
+                <button type="submit" class="btn btn-primary" id="changePasswordBtn">
+                  <i class="fas fa-check"></i>
+                  <span id="changePasswordBtnText">Đổi mật khẩu</span>
+                  <span id="changePasswordBtnLoading" class="loading hidden" style="border-top-color: white;"></span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    // Handle Change Password
+    function handleChangePassword(event) {
+      event.preventDefault();
+
+      const oldPassword = document.getElementById('oldPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const errorDiv = document.getElementById('passwordError');
+
+      // Validate
+      if (newPassword !== confirmPassword) {
+        errorDiv.textContent = 'Mật khẩu mới và xác nhận mật khẩu không khớp!';
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      if (newPassword === oldPassword) {
+        errorDiv.textContent = 'Mật khẩu mới phải khác mật khẩu hiện tại!';
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      // Hide error
+      errorDiv.classList.add('hidden');
+
+      // Show loading
+      const btn = document.getElementById('changePasswordBtn');
+      const btnText = document.getElementById('changePasswordBtnText');
+      const btnLoading = document.getElementById('changePasswordBtnLoading');
+
+      btn.disabled = true;
+      btnText.classList.add('hidden');
+      btnLoading.classList.remove('hidden');
+
+      // Call server
+      google.script.run
+        .withSuccessHandler(function(response) {
+          btn.disabled = false;
+          btnText.classList.remove('hidden');
+          btnLoading.classList.add('hidden');
+
+          if (response.success) {
+            closeModal();
+            showModal('Thành công', 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.', 'success');
+
+            // Redirect to login after 2 seconds
+            setTimeout(function() {
+              window.location.href = '<?= ScriptApp.getService().getUrl() ?>?page=login';
+            }, 2000);
+          } else {
+            errorDiv.textContent = response.message;
+            errorDiv.classList.remove('hidden');
+          }
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btnText.classList.remove('hidden');
+          btnLoading.classList.add('hidden');
+
+          errorDiv.textContent = 'Lỗi kết nối: ' + error.message;
+          errorDiv.classList.remove('hidden');
+        })
+        .handleChangePassword(oldPassword, newPassword);
+    }
+
     // Handle Logout
     function handleLogout() {
-      if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-        google.script.run
-          .withSuccessHandler(function(response) {
-            if (response.success) {
-              window.location.href = '<?= ScriptApp.getService().getUrl() ?>?page=login';
-            }
-          })
-          .withFailureHandler(function(error) {
-            showModal('Lỗi', 'Không thể đăng xuất: ' + error.message, 'danger');
-          })
-          .handleLogout();
+      // Close user dropdown if open
+      const dropdown = document.getElementById('userDropdown');
+      if (dropdown) {
+        dropdown.classList.remove('active');
       }
+
+      showConfirm(
+        'Xác nhận đăng xuất',
+        'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?',
+        function() {
+          // User confirmed - proceed with logout
+          showLoading('Đang đăng xuất...');
+
+          google.script.run
+            .withSuccessHandler(function(response) {
+              hideLoading();
+              if (response.success) {
+                showModal('Thành công', 'Đăng xuất thành công!', 'success');
+                setTimeout(function() {
+                  window.location.href = '<?= ScriptApp.getService().getUrl() ?>?page=login';
+                }, 1000);
+              }
+            })
+            .withFailureHandler(function(error) {
+              hideLoading();
+              showModal('Lỗi', 'Không thể đăng xuất: ' + error.message, 'danger');
+            })
+            .handleLogout();
+        },
+        function() {
+          // User cancelled - do nothing
+          console.log('Logout cancelled');
+        }
+      );
     }
   </script>
 </body>

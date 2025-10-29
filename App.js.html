@@ -89,16 +89,25 @@ function loadAllData() {
 // ==================== UPDATE DASHBOARD ====================
 
 function updateDashboard() {
-  const currentMonth = getCurrentMonth();
+  const now = new Date();
+  const currentMonth = now.getMonth(); // 0-11
+  const currentYear = now.getFullYear();
+
+  // Helper function để check tháng hiện tại
+  function isCurrentMonth(dateString) {
+    if (!dateString) return false;
+    const date = parseVietnameseDate(dateString);
+    return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+  }
 
   // Tính tổng thu nhập tháng này
   const totalIncome = APP_DATA.income
-    .filter(item => item['Ngày'] && item['Ngày'].startsWith(currentMonth.replace('-', '/')))
+    .filter(item => isCurrentMonth(item['Ngày']))
     .reduce((sum, item) => sum + parseFloat(item['Số tiền'] || 0), 0);
 
   // Tính tổng chi tiêu tháng này
   const totalExpense = APP_DATA.expense
-    .filter(item => item['Ngày'] && item['Ngày'].startsWith(currentMonth.replace('-', '/')))
+    .filter(item => isCurrentMonth(item['Ngày']))
     .reduce((sum, item) => sum + parseFloat(item['Số tiền'] || 0), 0);
 
   // Tính tiết kiệm
@@ -113,6 +122,16 @@ function updateDashboard() {
   document.getElementById('totalExpense').textContent = formatCurrency(totalExpense);
   document.getElementById('totalSaving').textContent = formatCurrency(totalSaving);
   document.getElementById('totalAssets').textContent = formatCurrency(totalAssets);
+
+  // Log để debug
+  console.log('Dashboard updated:', {
+    currentMonth: currentMonth + 1,
+    currentYear: currentYear,
+    totalIncome: totalIncome,
+    totalExpense: totalExpense,
+    totalSaving: totalSaving,
+    totalAssets: totalAssets
+  });
 
   // Update recent transactions
   updateRecentTransactions();
