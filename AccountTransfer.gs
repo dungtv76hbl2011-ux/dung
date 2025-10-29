@@ -140,10 +140,13 @@ function handleGetTransferHistory(filters) {
       if (log['action'] === 'transfer') {
         var logDetails = safeJsonParse(log['logDetails'], {});
 
+        // Transfer data nằm trong logDetails.changes (vì logAudit wrap vào changes)
+        var transferData = logDetails.changes || logDetails;
+
         // Filter theo accountId nếu có
         if (filters.accountId) {
-          if (logDetails.fromAccountId !== filters.accountId &&
-              logDetails.toAccountId !== filters.accountId) {
+          if (transferData.fromAccountId !== filters.accountId &&
+              transferData.toAccountId !== filters.accountId) {
             return; // Skip
           }
         }
@@ -157,14 +160,14 @@ function handleGetTransferHistory(filters) {
           logId: log['logId'],
           timestamp: log['Thời gian'],
           userId: log['userId'],
-          transferId: logDetails.transferId,
-          fromAccountId: logDetails.fromAccountId,
-          fromAccountName: logDetails.fromAccountName,
-          toAccountId: logDetails.toAccountId,
-          toAccountName: logDetails.toAccountName,
-          amount: logDetails.amount,
-          description: logDetails.description,
-          userName: logDetails.userName
+          transferId: transferData.transferId,
+          fromAccountId: transferData.fromAccountId,
+          fromAccountName: transferData.fromAccountName,
+          toAccountId: transferData.toAccountId,
+          toAccountName: transferData.toAccountName,
+          amount: transferData.amount,
+          description: transferData.description,
+          userName: transferData.userName || logDetails.userName
         });
       }
     });
