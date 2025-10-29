@@ -137,6 +137,15 @@
     const pageContent = document.getElementById(`page-${page}`);
     if (pageContent) {
       pageContent.classList.remove('hidden');
+
+      // Call page init function if exists
+      setTimeout(function() {
+        if (page === 'accounts' && typeof initAccountsPage !== 'undefined') {
+          initAccountsPage();
+        }
+        // Add more page init functions here as needed
+      }, 100);
+
     } else {
       // If page doesn't exist yet, show placeholder
       showPlaceholder(page);
