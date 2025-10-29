@@ -447,6 +447,66 @@ tbody td {
   font-size: 12px;
 }
 
+/* ==================== STICKY COLUMNS (MOBILE) ==================== */
+
+/* Sticky first column (e.g., Date, Time, Type) */
+.sticky-col-1 {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background-color: var(--white-color);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Header sticky first column needs higher z-index */
+thead th.sticky-col-1 {
+  z-index: 15;
+  background-color: var(--dark-color);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover state for sticky column in tbody */
+tbody tr:hover td.sticky-col-1 {
+  background-color: #f8f9fa;
+}
+
+/* Sticky second column (e.g., Account Name) */
+.sticky-col-2 {
+  position: sticky;
+  left: 120px; /* Adjust based on first column width */
+  z-index: 4;
+  background-color: var(--white-color);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Header sticky second column */
+thead th.sticky-col-2 {
+  z-index: 14;
+  background-color: var(--dark-color);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover state for sticky second column */
+tbody tr:hover td.sticky-col-2 {
+  background-color: #f8f9fa;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  /* Make first sticky column narrower on mobile */
+  .sticky-col-1 {
+    min-width: 80px;
+    max-width: 100px;
+  }
+
+  /* Adjust second column position */
+  .sticky-col-2 {
+    left: 80px;
+    min-width: 100px;
+    max-width: 140px;
+  }
+}
+
 /* ==================== FORMS ==================== */
 
 .form-group {
