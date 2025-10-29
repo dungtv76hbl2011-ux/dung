@@ -154,39 +154,60 @@
 
   // Show placeholder for pages not yet implemented
   function showPlaceholder(page) {
-    const contentArea = document.getElementById('dynamicContent');
-    if (!contentArea) return;
+    const dynamicContent = document.getElementById('dynamicContent');
+    if (!dynamicContent) return;
 
-    const pageTitles = {
-      'home': 'Trang chủ',
-      'income': 'Thu nhập',
-      'expense': 'Chi tiêu',
-      'budget': 'Ngân sách',
-      'loan': 'Khoản vay',
-      'investment': 'Đầu tư',
-      'third-party': 'Thu chi hộ',
-      'accounts': 'Tài khoản',
-      'reports': 'Báo cáo',
-      'settings': 'Cài đặt'
-    };
+    // Check if placeholder already exists
+    let placeholderPage = document.getElementById(`page-${page}`);
 
-    contentArea.innerHTML = `
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">
-            <i class="fas fa-info-circle"></i>
-            ${pageTitles[page]}
-          </h3>
-        </div>
-        <div class="card-body">
-          <div style="text-align: center; padding: 60px 20px;">
-            <i class="fas fa-tools" style="font-size: 64px; color: var(--gray-color); margin-bottom: 20px;"></i>
-            <h3 style="color: var(--dark-color); margin-bottom: 10px;">Trang đang được phát triển</h3>
-            <p style="color: var(--gray-color);">Chức năng này sẽ được bổ sung trong Phase tiếp theo.</p>
+    if (!placeholderPage) {
+      // Create new placeholder page element (KHÔNG XÓA các page khác)
+      placeholderPage = document.createElement('div');
+      placeholderPage.id = `page-${page}`;
+      placeholderPage.className = 'page-content';
+
+      const pageTitles = {
+        'home': 'Trang chủ',
+        'income': 'Thu nhập',
+        'expense': 'Chi tiêu',
+        'budget': 'Ngân sách',
+        'loan': 'Khoản vay',
+        'investment': 'Đầu tư',
+        'third-party': 'Thu chi hộ',
+        'accounts': 'Tài khoản',
+        'reports': 'Báo cáo',
+        'settings': 'Cài đặt'
+      };
+
+      placeholderPage.innerHTML = `
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-info-circle"></i>
+              ${pageTitles[page] || page}
+            </h3>
+          </div>
+          <div class="card-body">
+            <div style="text-align: center; padding: 60px 20px;">
+              <i class="fas fa-tools" style="font-size: 64px; color: var(--gray-color); margin-bottom: 20px;"></i>
+              <h3 style="color: var(--dark-color); margin-bottom: 10px;">Trang đang được phát triển</h3>
+              <p style="color: var(--gray-color);">Chức năng này sẽ được bổ sung trong Phase tiếp theo.</p>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
+
+      // APPEND (không replace) vào dynamicContent
+      dynamicContent.appendChild(placeholderPage);
+    }
+
+    // Hide all other pages
+    document.querySelectorAll('.page-content').forEach(content => {
+      content.classList.add('hidden');
+    });
+
+    // Show this placeholder
+    placeholderPage.classList.remove('hidden');
   }
 
   // Toggle sidebar on mobile

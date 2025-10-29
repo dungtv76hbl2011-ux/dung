@@ -3,7 +3,7 @@
      MÔ TẢ: UI Quản lý tài khoản - CRUD và chuyển tiền
      ===================================================== -->
 
-<div id="page-accounts" class="page-content">
+<div id="page-accounts" class="page-content hidden">
   <!-- Stats Cards -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
     <!-- Tổng số dư -->
@@ -740,22 +740,31 @@ function renderTransferHistory() {
   emptyState.classList.add('hidden');
 
   tbody.innerHTML = TRANSFER_HISTORY.slice(0, 10).map(transfer => {
+    // Log để debug (có thể xóa sau khi fix)
+    console.log('[Transfer History] Transfer data:', transfer);
+
     const date = new Date(transfer.timestamp);
     const dateStr = formatDate(date);
+
+    // Defensive: Lấy account names với fallback
+    const fromName = transfer.fromAccountName || transfer.fromAccountId || 'N/A';
+    const toName = transfer.toAccountName || transfer.toAccountId || 'N/A';
+    const amount = parseFloat(transfer.amount) || 0;
+    const desc = transfer.description || '-';
 
     return `
       <tr>
         <td>${dateStr}</td>
         <td>
           <i class="fas fa-arrow-right text-danger"></i>
-          ${transfer.fromAccountName}
+          ${fromName}
         </td>
         <td>
           <i class="fas fa-arrow-left text-success"></i>
-          ${transfer.toAccountName}
+          ${toName}
         </td>
-        <td><strong style="color: var(--primary-color);">${formatCurrency(transfer.amount)}</strong></td>
-        <td>${transfer.description || '-'}</td>
+        <td><strong style="color: var(--primary-color);">${formatCurrency(amount)}</strong></td>
+        <td>${desc}</td>
       </tr>
     `;
   }).join('');
