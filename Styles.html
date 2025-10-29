@@ -396,16 +396,21 @@ body {
 
 .table-container {
   overflow-x: auto;
+  overflow-y: auto;
   border-radius: var(--border-radius);
   background-color: var(--white-color);
   max-height: calc(100vh - 250px);
-  overflow-y: auto;
+  position: relative;
+  /* Enable smooth scrolling */
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
   width: 100%;
+  min-width: 800px; /* Force table to be wide enough to trigger horizontal scroll on mobile */
   border-collapse: collapse;
   font-size: 14px;
+  position: relative;
 }
 
 thead {
@@ -422,6 +427,7 @@ thead th {
   color: var(--white-color);
   background-color: var(--dark-color);
   white-space: nowrap;
+  position: relative;
 }
 
 tbody tr {
@@ -435,6 +441,7 @@ tbody tr:hover {
 
 tbody td {
   padding: 12px 15px;
+  position: relative;
 }
 
 .table-actions {
@@ -451,11 +458,13 @@ tbody td {
 
 /* Sticky first column (e.g., Date, Time, Type) */
 .sticky-col-1 {
-  position: sticky;
-  left: 0;
+  position: sticky !important;
+  left: 0 !important;
   z-index: 5;
   background-color: var(--white-color);
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  min-width: 100px;
+  white-space: nowrap;
 }
 
 /* Header sticky first column needs higher z-index */
@@ -472,11 +481,13 @@ tbody tr:hover td.sticky-col-1 {
 
 /* Sticky second column (e.g., Account Name) */
 .sticky-col-2 {
-  position: sticky;
-  left: 120px; /* Adjust based on first column width */
+  position: sticky !important;
+  left: 100px !important; /* Matches first column min-width */
   z-index: 4;
   background-color: var(--white-color);
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  min-width: 140px;
+  white-space: nowrap;
 }
 
 /* Header sticky second column */
@@ -493,15 +504,20 @@ tbody tr:hover td.sticky-col-2 {
 
 /* Responsive adjustments for mobile */
 @media (max-width: 768px) {
+  /* Reduce table min-width on mobile */
+  table {
+    min-width: 600px;
+  }
+
   /* Make first sticky column narrower on mobile */
   .sticky-col-1 {
     min-width: 80px;
     max-width: 100px;
   }
 
-  /* Adjust second column position */
+  /* Adjust second column position and width */
   .sticky-col-2 {
-    left: 80px;
+    left: 80px !important;
     min-width: 100px;
     max-width: 140px;
   }
