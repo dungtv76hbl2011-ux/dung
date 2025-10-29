@@ -407,7 +407,9 @@ body {
 table {
   width: 100%;
   min-width: 800px;
-  border-collapse: collapse;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 14px;
 }
 
@@ -425,6 +427,11 @@ thead th {
   color: var(--white-color);
   background-color: var(--dark-color);
   white-space: nowrap;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+thead th:last-child {
+  border-right: none;
 }
 
 tbody tr {
@@ -439,6 +446,11 @@ tbody tr:hover {
 tbody td {
   padding: 12px 15px;
   white-space: nowrap;
+  border-right: 1px solid var(--light-color);
+}
+
+tbody td:last-child {
+  border-right: none;
 }
 
 .table-actions {
