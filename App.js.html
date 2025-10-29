@@ -1,0 +1,417 @@
+<script>
+/* =====================================================
+   FILE: App.js.html
+   MÔ TẢ: JavaScript chính - Global state, helpers, API calls
+   ===================================================== */
+
+// ==================== GLOBAL STATE ====================
+
+let APP_DATA = {
+  income: [],
+  expense: [],
+  investment: [],
+  loan: [],
+  budget: [],
+  thirdParty: [],
+  accounts: [],
+  categories: [],
+  loaded: false
+};
+
+// ==================== INIT APP ====================
+
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('App initialized');
+  loadAllData();
+});
+
+// ==================== LOAD ALL DATA ====================
+
+function loadAllData() {
+  console.log('Loading all data...');
+
+  google.script.run
+    .withSuccessHandler(function(response) {
+      if (response.success) {
+        console.log('Data loaded successfully', response.data);
+
+        // Store data globally
+        const data = response.data;
+        APP_DATA.income = data['Thu nhập'] || [];
+        APP_DATA.expense = data['Chi tiêu'] || [];
+        APP_DATA.investment = data['Đầu tư'] || [];
+        APP_DATA.loan = data['Khoản vay'] || [];
+        APP_DATA.budget = data['Ngân sách'] || [];
+        APP_DATA.thirdParty = data['Thu chi hộ'] || [];
+        APP_DATA.accounts = data['Tài khoản'] || [];
+        APP_DATA.categories = data['Cài đặt'] || [];
+        APP_DATA.loaded = true;
+
+        // Update dashboard
+        updateDashboard();
+
+        // Hide loading
+        document.getElementById('dashboardLoading').classList.add('hidden');
+        document.getElementById('recentTransactions').classList.remove('hidden');
+
+      } else {
+        showModal('Lỗi', response.message, 'danger');
+        document.getElementById('dashboardLoading').innerHTML = `
+          <div style="text-align: center; padding: 60px 20px;">
+            <i class="fas fa-exclamation-circle" style="font-size: 64px; color: var(--danger-color); margin-bottom: 20px;"></i>
+            <h3 style="color: var(--danger-color);">Lỗi tải dữ liệu</h3>
+            <p style="color: var(--gray-color); margin-bottom: 20px;">${response.message}</p>
+            <button class="btn btn-primary" onclick="loadAllData()">
+              <i class="fas fa-redo"></i> Thử lại
+            </button>
+          </div>
+        `;
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error('Load data failed', error);
+      showModal('Lỗi', 'Không thể tải dữ liệu: ' + error.message, 'danger');
+
+      document.getElementById('dashboardLoading').innerHTML = `
+        <div style="text-align: center; padding: 60px 20px;">
+          <i class="fas fa-exclamation-circle" style="font-size: 64px; color: var(--danger-color); margin-bottom: 20px;"></i>
+          <h3 style="color: var(--danger-color);">Lỗi kết nối</h3>
+          <p style="color: var(--gray-color); margin-bottom: 20px;">${error.message}</p>
+          <button class="btn btn-primary" onclick="loadAllData()">
+            <i class="fas fa-redo"></i> Thử lại
+          </button>
+        </div>
+      `;
+    })
+    .handleLoadAllData();
+}
+
+// ==================== UPDATE DASHBOARD ====================
+
+function updateDashboard() {
+  const currentMonth = getCurrentMonth();
+
+  // Tính tổng thu nhập tháng này
+  const totalIncome = APP_DATA.income
+    .filter(item => item['Ngày'] && item['Ngày'].startsWith(currentMonth.replace('-', '/')))
+    .reduce((sum, item) => sum + parseFloat(item['Số tiền'] || 0), 0);
+
+  // Tính tổng chi tiêu tháng này
+  const totalExpense = APP_DATA.expense
+    .filter(item => item['Ngày'] && item['Ngày'].startsWith(currentMonth.replace('-', '/')))
+    .reduce((sum, item) => sum + parseFloat(item['Số tiền'] || 0), 0);
+
+  // Tính tiết kiệm
+  const totalSaving = totalIncome - totalExpense;
+
+  // Tính tổng tài sản (số dư hiện tại của tất cả tài khoản)
+  const totalAssets = APP_DATA.accounts
+    .reduce((sum, item) => sum + parseFloat(item['Số dư hiện tại'] || 0), 0);
+
+  // Update UI
+  document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+  document.getElementById('totalExpense').textContent = formatCurrency(totalExpense);
+  document.getElementById('totalSaving').textContent = formatCurrency(totalSaving);
+  document.getElementById('totalAssets').textContent = formatCurrency(totalAssets);
+
+  // Update recent transactions
+  updateRecentTransactions();
+}
+
+// ==================== UPDATE RECENT TRANSACTIONS ====================
+
+function updateRecentTransactions() {
+  const tbody = document.getElementById('recentTransactionsBody');
+  if (!tbody) return;
+
+  // Merge income and expense
+  const allTransactions = [
+    ...APP_DATA.income.map(item => ({
+      date: item['Ngày'],
+      type: 'Thu nhập',
+      category: getCategoryName(item['Danh mục thu nhập']),
+      amount: parseFloat(item['Số tiền'] || 0),
+      description: item['Mô tả'] || '',
+      typeClass: 'text-success'
+    })),
+    ...APP_DATA.expense.map(item => ({
+      date: item['Ngày'],
+      type: 'Chi tiêu',
+      category: getCategoryName(item['Danh mục chi tiêu']),
+      amount: parseFloat(item['Số tiền'] || 0),
+      description: item['Mô tả'] || '',
+      typeClass: 'text-danger'
+    }))
+  ];
+
+  // Sort by date (newest first)
+  allTransactions.sort((a, b) => {
+    const dateA = parseVietnameseDate(a.date);
+    const dateB = parseVietnameseDate(b.date);
+    return dateB - dateA;
+  });
+
+  // Take latest 10
+  const recentTransactions = allTransactions.slice(0, 10);
+
+  // Render
+  tbody.innerHTML = recentTransactions.map(tx => `
+    <tr>
+      <td>${tx.date}</td>
+      <td><span class="${tx.typeClass}">${tx.type}</span></td>
+      <td>${tx.category}</td>
+      <td><strong class="${tx.typeClass}">${formatCurrency(tx.amount)}</strong></td>
+      <td>${tx.description}</td>
+    </tr>
+  `).join('');
+}
+
+// ==================== HELPERS ====================
+
+// Format currency
+function formatCurrency(amount) {
+  if (amount === null || amount === undefined || amount === '') {
+    return '0₫';
+  }
+
+  const number = parseFloat(amount);
+  if (isNaN(number)) {
+    return '0₫';
+  }
+
+  return number.toLocaleString('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+}
+
+// Parse Vietnamese date dd/MM/yyyy
+function parseVietnameseDate(dateString) {
+  if (!dateString) return new Date(0);
+
+  const parts = dateString.split('/');
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = parseInt(parts[2], 10);
+    return new Date(year, month, day);
+  }
+
+  return new Date(dateString);
+}
+
+// Get current month yyyy-MM
+function getCurrentMonth() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = ('0' + (now.getMonth() + 1)).slice(-2);
+  return year + '-' + month;
+}
+
+// Get category name from JSON
+function getCategoryName(categoryJson) {
+  if (!categoryJson) return '';
+
+  try {
+    const categories = typeof categoryJson === 'string' ? JSON.parse(categoryJson) : categoryJson;
+    if (Array.isArray(categories) && categories.length > 0) {
+      return categories[0].name || categories[0].tên || '';
+    }
+  } catch (e) {
+    console.error('Parse category error', e);
+  }
+
+  return '';
+}
+
+// ==================== MODAL ====================
+
+function showModal(title, message, type = 'info') {
+  const modalContainer = document.getElementById('modalContainer');
+  if (!modalContainer) return;
+
+  const iconClass = {
+    'success': 'fa-check-circle',
+    'danger': 'fa-exclamation-circle',
+    'warning': 'fa-exclamation-triangle',
+    'info': 'fa-info-circle'
+  }[type] || 'fa-info-circle';
+
+  const colorClass = {
+    'success': 'text-success',
+    'danger': 'text-danger',
+    'warning': 'text-warning',
+    'info': 'text-info'
+  }[type] || 'text-info';
+
+  modalContainer.innerHTML = `
+    <div class="modal-overlay show" id="messageModal" onclick="closeModal()">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fas ${iconClass} ${colorClass}"></i>
+            ${title}
+          </h3>
+          <button class="modal-close" onclick="closeModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>${message}</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" onclick="closeModal()">
+            <i class="fas fa-check"></i> OK
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function closeModal() {
+  const modalContainer = document.getElementById('modalContainer');
+  if (modalContainer) {
+    modalContainer.innerHTML = '';
+  }
+}
+
+// Close modal when press Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeModal();
+  }
+});
+
+// ==================== CONFIRM DIALOG ====================
+
+function showConfirm(title, message, onConfirm, onCancel) {
+  const modalContainer = document.getElementById('modalContainer');
+  if (!modalContainer) return;
+
+  modalContainer.innerHTML = `
+    <div class="modal-overlay show" id="confirmModal">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fas fa-question-circle text-warning"></i>
+            ${title}
+          </h3>
+          <button class="modal-close" onclick="closeModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>${message}</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="handleConfirmCancel()">
+            <i class="fas fa-times"></i> Hủy
+          </button>
+          <button class="btn btn-danger" onclick="handleConfirmOk()">
+            <i class="fas fa-check"></i> Xác nhận
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Store callbacks
+  window._confirmCallback = onConfirm;
+  window._cancelCallback = onCancel;
+}
+
+function handleConfirmOk() {
+  if (typeof window._confirmCallback === 'function') {
+    window._confirmCallback();
+  }
+  closeModal();
+  delete window._confirmCallback;
+  delete window._cancelCallback;
+}
+
+function handleConfirmCancel() {
+  if (typeof window._cancelCallback === 'function') {
+    window._cancelCallback();
+  }
+  closeModal();
+  delete window._confirmCallback;
+  delete window._cancelCallback;
+}
+
+// ==================== LOADING OVERLAY ====================
+
+function showLoading(message = 'Đang xử lý...') {
+  const modalContainer = document.getElementById('modalContainer');
+  if (!modalContainer) return;
+
+  modalContainer.innerHTML = `
+    <div class="modal-overlay show" id="loadingModal">
+      <div style="text-align: center; color: white;">
+        <div class="loading" style="width: 60px; height: 60px; border-width: 6px; margin: 0 auto 20px;"></div>
+        <p style="font-size: 16px; font-weight: 500;">${message}</p>
+      </div>
+    </div>
+  `;
+}
+
+function hideLoading() {
+  closeModal();
+}
+
+// ==================== FORMAT INPUT NUMBER ====================
+
+function formatNumberInput(input) {
+  // Lấy giá trị và loại bỏ tất cả ký tự không phải số
+  let value = input.value.replace(/[^\d]/g, '');
+
+  // Format với dấu phân cách hàng nghìn
+  if (value) {
+    value = parseInt(value, 10).toLocaleString('vi-VN');
+  }
+
+  input.value = value;
+}
+
+// Parse number from formatted string
+function parseFormattedNumber(value) {
+  if (!value) return 0;
+
+  const cleaned = value.toString().replace(/[^\d]/g, '');
+  const number = parseInt(cleaned, 10);
+
+  return isNaN(number) ? 0 : number;
+}
+
+// ==================== DATE HELPERS ====================
+
+function formatDate(date) {
+  if (!date) return '';
+
+  if (typeof date === 'string') {
+    date = new Date(date);
+  }
+
+  if (!(date instanceof Date) || isNaN(date)) {
+    return '';
+  }
+
+  const day = ('0' + date.getDate()).slice(-2);
+  const month = ('0' + (date.getMonth() + 1)).slice(-2);
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
+function getTodayString() {
+  return formatDate(new Date());
+}
+
+// ==================== CONSOLE INFO ====================
+
+console.log('%c💰 Quản Lý Chi Tiêu Cá Nhân', 'color: #f99d07; font-size: 24px; font-weight: bold;');
+console.log('%cVersion: 1.0.0', 'color: #3782f4; font-size: 14px;');
+console.log('%cDeveloped with ❤️', 'color: #24c560; font-size: 12px;');
+</script>

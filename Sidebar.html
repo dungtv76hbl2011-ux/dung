@@ -1,0 +1,188 @@
+<!-- =====================================================
+     FILE: Sidebar.html
+     MÔ TẢ: Menu sidebar navigation
+     ===================================================== -->
+
+<div class="sidebar" id="sidebar">
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <i class="fas fa-wallet" style="font-size: 32px; margin-bottom: 10px;"></i>
+    <h1>Chi Tiêu</h1>
+    <p>Quản lý tài chính</p>
+  </div>
+
+  <!-- Sidebar Menu -->
+  <ul class="sidebar-menu">
+    <li>
+      <a href="#" onclick="navigateTo('home'); return false;" data-page="home" class="menu-link active">
+        <i class="fas fa-home"></i>
+        <span>Trang chủ</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="#" onclick="navigateTo('income'); return false;" data-page="income" class="menu-link">
+        <i class="fas fa-money-bill-wave"></i>
+        <span>Thu nhập</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="#" onclick="navigateTo('expense'); return false;" data-page="expense" class="menu-link">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Chi tiêu</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="#" onclick="navigateTo('budget'); return false;" data-page="budget" class="menu-link">
+        <i class="fas fa-chart-pie"></i>
+        <span>Ngân sách</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="#" onclick="navigateTo('loan'); return false;" data-page="loan" class="menu-link">
+        <i class="fas fa-hand-holding-usd"></i>
+        <span>Khoản vay</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="#" onclick="navigateTo('investment'); return false;" data-page="investment" class="menu-link">
+        <i class="fas fa-chart-line"></i>
+        <span>Đầu tư</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="#" onclick="navigateTo('third-party'); return false;" data-page="third-party" class="menu-link">
+        <i class="fas fa-exchange-alt"></i>
+        <span>Thu chi hộ</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="#" onclick="navigateTo('accounts'); return false;" data-page="accounts" class="menu-link">
+        <i class="fas fa-university"></i>
+        <span>Tài khoản</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="#" onclick="navigateTo('reports'); return false;" data-page="reports" class="menu-link">
+        <i class="fas fa-file-alt"></i>
+        <span>Báo cáo</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="#" onclick="navigateTo('settings'); return false;" data-page="settings" class="menu-link">
+        <i class="fas fa-cog"></i>
+        <span>Cài đặt</span>
+      </a>
+    </li>
+  </ul>
+</div>
+
+<script>
+  // Navigate to page
+  function navigateTo(page) {
+    // Update active menu
+    document.querySelectorAll('.menu-link').forEach(link => {
+      link.classList.remove('active');
+    });
+
+    const activeLink = document.querySelector(`[data-page="${page}"]`);
+    if (activeLink) {
+      activeLink.classList.add('active');
+    }
+
+    // Update page title
+    const pageTitles = {
+      'home': 'Trang chủ',
+      'income': 'Thu nhập',
+      'expense': 'Chi tiêu',
+      'budget': 'Ngân sách',
+      'loan': 'Khoản vay',
+      'investment': 'Đầu tư',
+      'third-party': 'Thu chi hộ',
+      'accounts': 'Tài khoản',
+      'reports': 'Báo cáo',
+      'settings': 'Cài đặt'
+    };
+
+    const headerTitle = document.querySelector('.header-title h2');
+    if (headerTitle) {
+      headerTitle.textContent = pageTitles[page] || 'Trang chủ';
+    }
+
+    // Show corresponding content
+    showPage(page);
+
+    // Close sidebar on mobile after navigation
+    if (window.innerWidth <= 480) {
+      document.getElementById('sidebar').classList.remove('show');
+    }
+  }
+
+  // Show page content
+  function showPage(page) {
+    // Hide all pages
+    document.querySelectorAll('.page-content').forEach(content => {
+      content.classList.add('hidden');
+    });
+
+    // Show selected page
+    const pageContent = document.getElementById(`page-${page}`);
+    if (pageContent) {
+      pageContent.classList.remove('hidden');
+    } else {
+      // If page doesn't exist yet, show placeholder
+      showPlaceholder(page);
+    }
+  }
+
+  // Show placeholder for pages not yet implemented
+  function showPlaceholder(page) {
+    const contentArea = document.getElementById('dynamicContent');
+    if (!contentArea) return;
+
+    const pageTitles = {
+      'home': 'Trang chủ',
+      'income': 'Thu nhập',
+      'expense': 'Chi tiêu',
+      'budget': 'Ngân sách',
+      'loan': 'Khoản vay',
+      'investment': 'Đầu tư',
+      'third-party': 'Thu chi hộ',
+      'accounts': 'Tài khoản',
+      'reports': 'Báo cáo',
+      'settings': 'Cài đặt'
+    };
+
+    contentArea.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-info-circle"></i>
+            ${pageTitles[page]}
+          </h3>
+        </div>
+        <div class="card-body">
+          <div style="text-align: center; padding: 60px 20px;">
+            <i class="fas fa-tools" style="font-size: 64px; color: var(--gray-color); margin-bottom: 20px;"></i>
+            <h3 style="color: var(--dark-color); margin-bottom: 10px;">Trang đang được phát triển</h3>
+            <p style="color: var(--gray-color);">Chức năng này sẽ được bổ sung trong Phase tiếp theo.</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Toggle sidebar on mobile
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('show');
+  }
+</script>
