@@ -465,6 +465,12 @@ tbody td:last-child {
 
 /* ==================== STICKY COLUMNS (MOBILE) ==================== */
 
+/* DISABLED - Causing column duplication issue
+ * Position sticky on table cells creates visual duplicates
+ * Will implement JavaScript-based solution later if needed
+ */
+
+/*
 .sticky-col-1 {
   position: sticky !important;
   left: 0 !important;
@@ -506,6 +512,7 @@ thead th.sticky-col-2 {
 tbody tr:hover td.sticky-col-2 {
   background-color: #f8f9fa !important;
 }
+*/
 
 /* Responsive adjustments for mobile */
 @media (max-width: 768px) {
