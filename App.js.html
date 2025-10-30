@@ -176,7 +176,7 @@ function updateRecentTransactions() {
   // Render
   tbody.innerHTML = recentTransactions.map(tx => `
     <tr>
-      <td>${tx.date}</td>
+      <td class="sticky-col-1">${tx.date}</td>
       <td><span class="${tx.typeClass}">${tx.type}</span></td>
       <td>${tx.category}</td>
       <td><strong class="${tx.typeClass}">${formatCurrency(tx.amount)}</strong></td>

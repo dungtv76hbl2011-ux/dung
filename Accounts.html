@@ -56,8 +56,8 @@
         <table id="accountsTable">
           <thead>
             <tr>
-              <th>Loại</th>
-              <th>Tên tài khoản</th>
+              <th class="sticky-col-1">Loại</th>
+              <th class="sticky-col-2">Tên tài khoản</th>
               <th>Số tài khoản</th>
               <th>Số dư đầu kỳ</th>
               <th>Số dư hiện tại</th>
@@ -101,7 +101,7 @@
         <table id="transferHistoryTable">
           <thead>
             <tr>
-              <th>Thời gian</th>
+              <th class="sticky-col-1">Thời gian</th>
               <th>Từ tài khoản</th>
               <th>Đến tài khoản</th>
               <th>Số tiền</th>
@@ -190,13 +190,13 @@ function renderAccountsTable() {
 
     return `
       <tr>
-        <td>
+        <td class="sticky-col-1">
           <span style="display: inline-flex; align-items: center; gap: 8px;">
             <i class="fas ${getAccountTypeIcon(account['Loại'])}"></i>
             ${account['Loại']}
           </span>
         </td>
-        <td><strong>${account['Tên tài khoản']}</strong></td>
+        <td class="sticky-col-2"><strong>${account['Tên tài khoản']}</strong></td>
         <td>${accountNumber}</td>
         <td>${formatCurrency(account['Số dư đầu kỳ'])}</td>
         <td><strong style="color: var(--success-color);">${formatCurrency(account['Số dư hiện tại'])}</strong></td>
@@ -754,7 +754,7 @@ function renderTransferHistory() {
 
     return `
       <tr>
-        <td>${dateStr}</td>
+        <td class="sticky-col-1">${dateStr}</td>
         <td>
           <i class="fas fa-arrow-right text-danger"></i>
           ${fromName}
