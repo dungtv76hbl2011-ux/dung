@@ -173,10 +173,10 @@ function updateRecentTransactions() {
   // Take latest 10
   const recentTransactions = allTransactions.slice(0, 10);
 
-  // Render - THÊM class sticky-date-col cho cột Ngày
+  // Render recent transactions table
   tbody.innerHTML = recentTransactions.map(tx => `
     <tr>
-      <td class="sticky-date-col">${tx.date}</td>
+      <td>${tx.date}</td>
       <td><span class="${tx.typeClass}">${tx.type}</span></td>
       <td>${tx.category}</td>
       <td><strong class="${tx.typeClass}">${formatCurrency(tx.amount)}</strong></td>

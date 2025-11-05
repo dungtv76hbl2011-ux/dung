@@ -457,7 +457,12 @@ tbody td:last-child {
   border-right: none;
 }
 
-/* STICKY COLUMNS - Cố định cột đầu tiên khi scroll ngang */
+/* STICKY COLUMNS - DISABLED - Causing column duplication issue
+ * Position sticky on table cells creates visual duplicates
+ * Will implement JavaScript-based solution later if needed
+ */
+
+/*
 .sticky-date-col {
   position: sticky !important;
   left: 0 !important;
@@ -475,7 +480,6 @@ tbody tr:hover td.sticky-date-col {
   background-color: #f8f9fa !important;
 }
 
-/* STICKY 2 COLUMNS - Cố định 2 cột đầu */
 .sticky-col-type {
   position: sticky !important;
   left: 0 !important;
@@ -508,6 +512,7 @@ tbody tr:hover td.sticky-col-type,
 tbody tr:hover td.sticky-col-name {
   background-color: #f8f9fa !important;
 }
+*/
 
 .table-actions {
   display: flex;
@@ -517,49 +522,6 @@ tbody tr:hover td.sticky-col-name {
 .table-actions .btn {
   padding: 6px 10px;
   font-size: 12px;
-}
-
-thead th {
-padding: 12px 15px;
-text-align: left;
-font-weight: 600;
-color: var(--white-color);
-background-color: var(--dark-color);
-white-space: nowrap;
-border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-thead th:last-child {
-border-right: none;
-}
-
-tbody tr {
-border-bottom: 1px solid var(--light-color);
-transition: var(--transition);
-}
-
-tbody tr:hover {
-background-color: #f8f9fa;
-}
-
-tbody td {
-padding: 12px 15px;
-white-space: nowrap;
-border-right: 1px solid var(--light-color);
-}
-
-tbody td:last-child {
-border-right: none;
-}
-
-.table-actions {
-display: flex;
-gap: 8px;
-}
-
-.table-actions .btn {
-padding: 6px 10px;
-font-size: 12px;
 }
 
 /* ==================== STICKY COLUMNS (MOBILE) ==================== */
